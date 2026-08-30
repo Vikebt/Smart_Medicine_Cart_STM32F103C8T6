@@ -1,0 +1,19 @@
+# Keil MDK generated files
+Build/
+Output/
+Listing/
+*.axf
+*.hex
+*.bin
+*.map
+*.o
+*.d
+*.crf
+*.dep
+*.lnp
+*.htm
+*.build_log.htm
+*.lst
+*.uvguix.*
+*.uvoptx
+build_*.log
