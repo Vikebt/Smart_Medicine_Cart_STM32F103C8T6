@@ -1,11 +1,11 @@
 /**
   ******************************************************************************
-  * @file    Project/STM32F10x_StdPeriph_Template/stm32f10x_it.c 
+  * @file    Project/STM32F10x_StdPeriph_Template/stm32f10x_it.c
   * @author  MCD Application Team
   * @version V3.5.0
   * @date    08-April-2011
   * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and 
+  *          This file provides template for all exceptions handler and
   *          peripherals interrupt service routine.
   ******************************************************************************
   * @attention
@@ -14,7 +14,7 @@
   * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
   * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
   * DIRECT, INDIRECT OR CONSEQUENTI
-  
+
   AL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
   * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
@@ -26,16 +26,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 
-#include "FreeRTOS.h"					//FreeRTOSÊ¹ÓÃ		  
-#include "task.h" 
-#include "queue.h" 
+#include "FreeRTOS.h"					//FreeRTOSä½¿ç”¨
+#include "task.h"
+#include "queue.h"
+#include "app_protocol.h"
 
 extern QueueHandle_t g_UartQueue;
 extern volatile uint8_t g_intersection_flag;
-//extern volatile TurnDirection_t g_turn_direction;
-extern volatile enum { TURN_NONE = 0, TURN_LEFT, TURN_RIGHT } g_turn_direction;
-extern uint8_t g_targetWard;
-extern uint8_t g_currentWard;
 
 #define RX_BUF_SIZE 2
 static uint8_t rx_buffer[RX_BUF_SIZE];
@@ -154,51 +151,39 @@ void DebugMon_Handler(void)
 void USART3_IRQHandler(void)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET) 
+    if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)
 		{
         uint8_t data = USART_ReceiveData(USART3);
-			
+
 				if(rx_index < RX_BUF_SIZE)
         {
             rx_buffer[rx_index++] = data;
-            if(rx_index == RX_BUF_SIZE)   // ÊÕÂúÁ½¸ö×Ö½Ú
+            if(rx_index == RX_BUF_SIZE)   // æ”¶æ»¡ä¸¤ä¸ªå­—èŠ‚
             {
-                uint8_t right_ward = rx_buffer[0];
-                uint8_t left_ward  = rx_buffer[1];
-                
-                // ¸ù¾ÝÄ¿±ê²¡·¿ºÅÅÐ¶ÏÊÇ·ñÐèÒª×ªÏò£¬ÒÔ¼°×ªÏò·½Ïò
-                if(right_ward == g_targetWard && right_ward != 0)
+                VisionFrame_t xFrame;
+                xFrame.ucRightWard = rx_buffer[0];
+                xFrame.ucLeftWard = rx_buffer[1];
+
+                /* ISR only frames bytes and notifies a task. */
+                if (g_UartQueue != NULL)
                 {
-                    g_turn_direction = TURN_RIGHT;
-                    g_currentWard = right_ward;
+                    xQueueOverwriteFromISR(g_UartQueue, &xFrame,
+                                           &xHigherPriorityTaskWoken);
                 }
-                else if(left_ward == g_targetWard && left_ward != 0)
-                {
-                    g_turn_direction = TURN_LEFT;
-                    g_currentWard = left_ward;
-                }
-                else
-                {
-                    g_turn_direction = TURN_NONE;
-                }
-                
-                // ½«Êý¾Ý·ÅÈë¶ÓÁÐ£¨»òÖ±½ÓÓÃÈ«¾Ö±äÁ¿Í¨ÖªUIÈÎÎñ£©
-                xQueueSendFromISR(g_UartQueue, &right_ward, &xHigherPriorityTaskWoken);
-                xQueueSendFromISR(g_UartQueue, &left_ward, &xHigherPriorityTaskWoken);
-                
-                rx_index = 0;   // ÖØÖÃ»º³åÇø
+
+                rx_index = 0;   // é‡ç½®ç¼“å†²åŒº
             }
         }
         USART_ClearITPendingBit(USART3, USART_IT_RXNE);
     }
-		// Èç¹û·¢ËÍ¶ÓÁÐµ¼ÖÂ¸ü¸ßÓÅÏÈ¼¶ÈÎÎñ¾ÍÐ÷£¬ÔòÁ¢¼´ÇÐ»»
+		// å¦‚æžœå‘é€é˜Ÿåˆ—å¯¼è‡´æ›´é«˜ä¼˜å…ˆçº§ä»»åŠ¡å°±ç»ªï¼Œåˆ™ç«‹å³åˆ‡æ¢
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
-/* Èç¹ûÐèÒªÊ¹ÓÃÍâ²¿ÖÐ¶Ï¼ì²âÂ·¿Ú£¬¿ÉÔÚ´ËÌí¼Ó */
+/* å¦‚æžœéœ€è¦ä½¿ç”¨å¤–éƒ¨ä¸­æ–­æ£€æµ‹è·¯å£ï¼Œå¯åœ¨æ­¤æ·»åŠ  */
 void EXTI9_5_IRQHandler(void)
 {
-    if(EXTI_GetITStatus(EXTI_Line7) != RESET) 
+    if(EXTI_GetITStatus(EXTI_Line7) != RESET)
 		{
         g_intersection_flag = 1;
         EXTI_ClearITPendingBit(EXTI_Line7);
@@ -223,7 +208,7 @@ void EXTI9_5_IRQHandler(void)
 
 /**
   * @}
-  */ 
+  */
 
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

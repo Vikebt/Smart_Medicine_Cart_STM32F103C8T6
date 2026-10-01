@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.16)
+project(cart_host_tests C)
+enable_testing()
+add_executable(test_cart_state test_cart_state.c ../../APP/cart_control/cart_state.c)
+target_include_directories(test_cart_state PRIVATE ../../APP/cart_control)
+add_test(NAME cart_state COMMAND test_cart_state)

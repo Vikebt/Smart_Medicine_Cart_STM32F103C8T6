@@ -17,3 +17,5 @@ Listing/
 *.uvguix.*
 *.uvoptx
 build_*.log
+build/
+tests/host/*.exe

@@ -1,90 +1,129 @@
 #include "hx711.h"
-#include "delay.h"   // ¼ÙÉèÓĞÒ»¸öÎ¢ÃëÑÓÊ±º¯Êı delay_us()
+#include "delay.h"   // å‡è®¾æœ‰ä¸€ä¸ªå¾®ç§’å»¶æ—¶å‡½æ•° delay_us()
 
-static long g_offset = 0;      // È¥Æ¤Æ«ÒÆÁ¿
-static float g_scale = 1.0f;   // ±ÈÀıÏµÊı
+static long g_offset = 0;      // å»çš®åç§»é‡
+static float g_scale = 1.0f;   // æ¯”ä¾‹ç³»æ•°
 
 void HX711_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
-    
+
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-    
-    // SCK ÍÆÍìÊä³ö
+
+    // SCK æ¨æŒ½è¾“å‡º
     GPIO_InitStructure.GPIO_Pin = HX711_SCK_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(HX711_SCK_PORT, &GPIO_InitStructure);
-    
-    // DOUT ¸¡¿ÕÊäÈë
+
+    // DOUT æµ®ç©ºè¾“å…¥
     GPIO_InitStructure.GPIO_Pin = HX711_DOUT_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_Init(HX711_DOUT_PORT, &GPIO_InitStructure);
-    
-    HX711_SCK_LOW();  // ³õÊ¼µÍµçÆ½
+
+    HX711_SCK_LOW();  // åˆå§‹ä½ç”µå¹³
 }
 
-// ¶ÁÈ¡Ò»´ÎÔ­Ê¼Öµ£¨24Î»ÓĞ·ûºÅÊı£©
-uint32_t HX711_Read(void)
+// è¯»å–ä¸€æ¬¡åŸå§‹å€¼ï¼ˆ24ä½æœ‰ç¬¦å·æ•°ï¼‰
+uint8_t HX711_Read(int32_t *piValue, uint32_t ulTimeoutUs)
 {
     uint32_t val = 0;
     uint8_t i;
-    
-    // µÈ´ı DOUT ±äµÍ£¬±íÊ¾Êı¾İ×¼±¸ºÃ
-    while(HX711_DOUT_READ() == SET);
-    
-    // ¶ÁÈ¡24Î»Êı¾İ£¬¸ßÎ»ÔÚÇ°
+
+    if (piValue == 0)
+    {
+        return 0U;
+    }
+
+    // ç­‰å¾… DOUT å˜ä½ï¼Œè¡¨ç¤ºæ•°æ®å‡†å¤‡å¥½
+    while(HX711_DOUT_READ() == SET)
+    {
+        if (ulTimeoutUs-- == 0U)
+        {
+            return 0U;
+        }
+        delay_us(1);
+    }
+
+    // è¯»å–24ä½æ•°æ®ï¼Œé«˜ä½åœ¨å‰
     for(i = 0; i < 24; i++)
     {
         HX711_SCK_HIGH();
-        delay_us(1);  // ÖÁÉÙ1us¸ßµçÆ½
+        delay_us(1);  // è‡³å°‘1usé«˜ç”µå¹³
         val <<= 1;
         if(HX711_DOUT_READ() == SET) val |= 1;
         HX711_SCK_LOW();
         delay_us(1);
     }
-    
-    // µÚ25¸öÂö³å£¬Ñ¡ÔñÍ¨µÀAÔöÒæ128£¨ÏÂ´Î×ª»»£©
+
+    // ç¬¬25ä¸ªè„‰å†²ï¼Œé€‰æ‹©é€šé“Aå¢ç›Š128ï¼ˆä¸‹æ¬¡è½¬æ¢ï¼‰
     HX711_SCK_HIGH();
     delay_us(1);
     HX711_SCK_LOW();
     delay_us(1);
-    
-    // 24Î»ÓĞ·ûºÅÊıÀ©Õ¹Îª32Î»ÓĞ·ûºÅÊı
+
+    // 24ä½æœ‰ç¬¦å·æ•°æ‰©å±•ä¸º32ä½æœ‰ç¬¦å·æ•°
     if(val & 0x800000) val |= 0xFF000000;
-    return (int32_t)val;
+    *piValue = (int32_t)val;
+    return 1U;
 }
 
-// ¶ÁÈ¡¶à´ÎÈ¡Æ½¾ùÖµ£¨Ìá¸ßÎÈ¶¨ĞÔ£©
-static uint32_t HX711_Read_Average(uint8_t times)
+// è¯»å–å¤šæ¬¡å–å¹³å‡å€¼ï¼ˆæé«˜ç¨³å®šæ€§ï¼‰
+static uint8_t HX711_Read_Average(uint8_t times, int32_t *piAverage)
 {
-    uint32_t sum = 0;
+    int64_t llSum = 0;
+    int32_t iValue;
+
+    if ((times == 0U) || (piAverage == 0))
+    {
+        return 0U;
+    }
     for(uint8_t i = 0; i < times; i++)
-        sum += HX711_Read();
-    return sum / times;
+    {
+        if (HX711_Read(&iValue, 100000U) == 0U)
+        {
+            return 0U;
+        }
+        llSum += iValue;
+    }
+    *piAverage = (int32_t)(llSum / times);
+    return 1U;
 }
 
-// »ñÈ¡ÖØÁ¿£¨µ¥Î»£º¿Ë£©
-float HX711_Read_Weight(void)
+// è·å–é‡é‡ï¼ˆå•ä½ï¼šå…‹ï¼‰
+uint8_t HX711_Read_Weight(float *pfWeightGram)
 {
-    int32_t raw = (int32_t)HX711_Read_Average(10);
-    return (raw - g_offset) / g_scale;
+    int32_t iRaw;
+
+    if ((pfWeightGram == 0) || (g_scale == 0.0f) ||
+        (HX711_Read_Average(10U, &iRaw) == 0U))
+    {
+        return 0U;
+    }
+    *pfWeightGram = (iRaw - g_offset) / g_scale;
+    return 1U;
 }
 
-// ÉèÖÃÆ«ÒÆÁ¿£¨ÓÃÓÚÈ¥Æ¤£©
+// è®¾ç½®åç§»é‡ï¼ˆç”¨äºå»çš®ï¼‰
 void HX711_Set_Offset(long offset)
 {
     g_offset = offset;
 }
 
-// ÉèÖÃ±ÈÀıÏµÊı£¨Ğè¸ù¾İÊµ¼Ê´«¸ĞÆ÷±ê¶¨£©
+// è®¾ç½®æ¯”ä¾‹ç³»æ•°ï¼ˆéœ€æ ¹æ®å®é™…ä¼ æ„Ÿå™¨æ ‡å®šï¼‰
 void HX711_Set_Scale(float scale)
 {
     g_scale = scale;
 }
 
-// È¥Æ¤£º½«µ±Ç°¶ÁÊı×÷ÎªÁãµã
-void HX711_Tare(void)
+// å»çš®ï¼šå°†å½“å‰è¯»æ•°ä½œä¸ºé›¶ç‚¹
+uint8_t HX711_Tare(void)
 {
-    g_offset = (int32_t)HX711_Read_Average(20);
+    int32_t iOffset;
+    if (HX711_Read_Average(20U, &iOffset) == 0U)
+    {
+        return 0U;
+    }
+    g_offset = iOffset;
+    return 1U;
 }

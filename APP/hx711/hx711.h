@@ -3,23 +3,23 @@
 
 #include "stm32f10x.h"
 
-// Òı½Å¶¨Òå£¨¿É¸ù¾İÊµ¼ÊĞŞ¸Ä£©
+// å¼•è„šå®šä¹‰ï¼ˆå¯æ ¹æ®å®é™…ä¿®æ”¹ï¼‰
 #define HX711_SCK_PIN    GPIO_Pin_2
 #define HX711_SCK_PORT   GPIOC
 #define HX711_DOUT_PIN   GPIO_Pin_3
 #define HX711_DOUT_PORT  GPIOC
 
-// ºê¶¨Òå£º²Ù×÷Òı½Å
+// å®å®šä¹‰ï¼šæ“ä½œå¼•è„š
 #define HX711_SCK_HIGH()  GPIO_SetBits(HX711_SCK_PORT, HX711_SCK_PIN)
 #define HX711_SCK_LOW()   GPIO_ResetBits(HX711_SCK_PORT, HX711_SCK_PIN)
 #define HX711_DOUT_READ() GPIO_ReadInputDataBit(HX711_DOUT_PORT, HX711_DOUT_PIN)
 
-// º¯ÊıÉùÃ÷
+// å‡½æ•°å£°æ˜
 void HX711_Init(void);
-uint32_t HX711_Read(void);
-float HX711_Read_Weight(void);
+uint8_t HX711_Read(int32_t *piValue, uint32_t ulTimeoutUs);
+uint8_t HX711_Read_Weight(float *pfWeightGram);
 void HX711_Set_Offset(long offset);
 void HX711_Set_Scale(float scale);
-void HX711_Tare(void);
+uint8_t HX711_Tare(void);
 
 #endif

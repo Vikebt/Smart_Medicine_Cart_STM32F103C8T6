@@ -33,7 +33,7 @@
 
 ```text
 OpenMV ── USART3 RXNE ISR ──> UartQueue ───┐
-5 路灰度 ─────────────────> Control (5 ms) ─> PID ─> PWM / 差速电机
+7 路灰度 ─────────────────> Control (5 ms) ─> PID ─> PWM / 差速电机
 HX711 ─────────────────────> Sensor (100 ms) ─> WeightQueue ─┐
                                                              └─> UI_Logic (20 ms) ─> 配送状态机 / OLED
 ```

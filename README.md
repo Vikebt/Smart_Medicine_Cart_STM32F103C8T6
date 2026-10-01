@@ -14,7 +14,7 @@
 
 ```text
 OpenMV ── USART3 ISR ─┐
-5 路灰度 ────────────┼─> Control (5 ms) ─> PID ─> PWM / 差速电机
+7 路灰度 ────────────┼─> Control (5 ms) ─> PID ─> PWM / 差速电机
 HX711 ───────────────┼─> Sensor (100 ms) ─> WeightQueue
                       └─> UI_Logic (20 ms) ─> 配送状态机 / OLED
 ```
@@ -33,7 +33,7 @@ HX711 ───────────────┼─> Sensor (100 ms) ─> 
 
 - 以速率单调的优先级分配保障 200 Hz 控制环优先执行。
 - 将循迹 PID、配送状态机与低频称重/显示拆分，避免慢外设拖慢电机控制。
-- 集成 OpenMV 串口输入、5 路灰度传感器、HX711、OLED、PWM 电机驱动和差速控制。
+- 集成 OpenMV 串口输入、7 路灰度传感器、HX711、OLED、PWM 电机驱动和差速控制。
 - 保留 STM32 StdPeriph + FreeRTOS 的传统裸机/RTOS 工程布局，方便在 Keil 中审阅、移植和继续扩展。
 
 ## 工程结构
