@@ -1,5 +1,7 @@
 # 面试证据索引：智能送药小车
 
+总讲义见 [模块化五项目面试讲义](https://github.com/Vikebt/EmbeddedLinux_IMX6ULL_ConditionMonitor/tree/main/docs/interview-handbook)，本项目重点对应 [ARM/FreeRTOS](https://github.com/Vikebt/EmbeddedLinux_IMX6ULL_ConditionMonitor/blob/main/docs/interview-handbook/02-arm-freertos.md)、[P2 项目故事](https://github.com/Vikebt/EmbeddedLinux_IMX6ULL_ConditionMonitor/blob/main/docs/interview-handbook/06-project-stories.md#p2智能送药小车) 与 [P2 实验](https://github.com/Vikebt/EmbeddedLinux_IMX6ULL_ConditionMonitor/blob/main/docs/interview-handbook/09-experiments.md#3-p2非阻塞状态机与-tick-回绕)。固定证据标签为本仓库 `study-step-2-nonblocking-fsm`；总讲义固定标签为 `study-step-7-detailed-handbook`。
+
 | 常见问题 | 代码证据 | 工程回答 |
 |---|---|---|
 | 中断里应该做什么？ | `Core/stm32f10x_it.c` | USART ISR 只完成两字节组帧和队列通知；病房匹配、转向决策留在任务上下文 |

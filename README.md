@@ -6,6 +6,8 @@
 > **项目记录**：2021 年全国大学生电子设计竞赛相关作品；STAR 资料记录为省级一等奖。  
 > **本人职责**：项目负责人，主导硬件设计、FreeRTOS 任务划分、电机控制、传感器联调与整机调试。
 
+> **面试学习入口**：[五项目讲义（main）](https://github.com/Vikebt/EmbeddedLinux_IMX6ULL_ConditionMonitor/tree/main/docs/interview-handbook) · [固定版本](https://github.com/Vikebt/EmbeddedLinux_IMX6ULL_ConditionMonitor/tree/study-step-7-detailed-handbook/docs/interview-handbook) · [ARM/FreeRTOS 章节](https://github.com/Vikebt/EmbeddedLinux_IMX6ULL_ConditionMonitor/blob/main/docs/interview-handbook/02-arm-freertos.md) · [P2 项目故事](https://github.com/Vikebt/EmbeddedLinux_IMX6ULL_ConditionMonitor/blob/main/docs/interview-handbook/06-project-stories.md#p2智能送药小车)
+
 ## 项目背景
 
 目标是在无遥控干预下，让小车沿引导线从药房出发，根据视觉端识别的病房数字决定配送方向，完成停靠/投递判定后返回。核心难点是：5 ms 的运动控制不能被显示、称重或串口处理阻塞，同时任务间状态必须可追溯、可扩展。
