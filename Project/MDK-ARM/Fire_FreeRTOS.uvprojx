@@ -612,9 +612,9 @@
               <FilePath>..\..\BSP\usart\usart.c</FilePath>
             </File>
             <File>
-              <FileName>delay.c</FileName>
+              <FileName>delay_timer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\BSP\delay\delay.c</FilePath>
+              <FilePath>..\..\BSP\delay\delay_timer.c</FilePath>
             </File>
           </Files>
         </Group>
