@@ -11,7 +11,8 @@
 | Tick 回绕怎么办？ | `prvElapsed` 和主机测试 | 使用无符号减法比较持续时间，并覆盖 `UINT32_MAX` 回绕测试 |
 | 传感器断线怎么办？ | `APP/hx711/hx711.c` | DOUT 等待有 100 ms 超时，错误沿调用链返回，不会永久卡死传感器任务 |
 | 怎么发现资源创建失败？ | `Core/main.c`、`FreeRTOSConfig.h` | 队列与任务创建后断言，启用 malloc-failed 与 level-2 栈溢出 hook |
+| OLED 在调度器启动前为何可能卡住？ | `BSP/delay/delay_timer.c`、MDK 工程文件 | 原实现读取尚未启动的 SysTick；现在先启 TIM2 1 MHz 计数器，微秒延时不依赖 RTOS tick；ARMCC 固件已完整链接，实板时序仍待测 |
 
 ## 验证边界
 
-主机测试验证状态转移、输出命令和 Tick 回绕。没有实车时，不声称已经验证 PID 参数、路口光学阈值、转向时长或 HX711 标定系数。
+主机 Debug/Release 测试验证状态转移、输出命令和 Tick 回绕；Keil ARMCC 5.06u6 完整构建已生成 AXF/HEX，日志 0 错误、0 警告。修正从大容量芯片遗留的目标内存设置后，map 显示 Flash 使用 `0x4EF8`、上限 `0x10000`，RAM 使用 `0x2808`、上限 `0x5000`，与 STM32F103C8 的 64 KB / 20 KB 边界一致。实板时序仍待验证。没有实车时，不声称已经验证 PID 参数、路口光学阈值、转向时长或 HX711 标定系数。
